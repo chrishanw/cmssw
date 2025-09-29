@@ -5,7 +5,6 @@
 #include <cstdint>
 #include "DataFormats/SoATemplate/interface/SoACommon.h"
 #include "DataFormats/SoATemplate/interface/SoALayout.h"
-// #include "DataFormats/SoATemplate/interface/SoAView.h"
 
 
 namespace reco {
@@ -18,10 +17,10 @@ namespace reco {
 		SOA_COLUMN(float, vertexZBound),
 		SOA_COLUMN(float, tanLambdaRangeMin),
 		SOA_COLUMN(float, tanLambdaRangeMax),
-                SOA_COLUMN(float, phiMarginLeft),
+        SOA_COLUMN(float, phiMarginLeft),
 		SOA_COLUMN(float, phiMarginRight),
 		SOA_EIGEN_COLUMN(Vector3d, direction),
-		SOA_EIGEN_COLUMN(Vector3d, origin),
+		SOA_EIGEN_COLUMN(Vector3d, vertexPos)
 	)
 	using PixelSeedingRegionsSoA = PixelSeedingRegionsLayout<>;
 }  // namespace reco
