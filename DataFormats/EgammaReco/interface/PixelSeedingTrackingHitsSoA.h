@@ -13,6 +13,7 @@ namespace reco {
 	using Matrix4d = Eigen::Matrix<double, 4, 4>;
 
 	GENERATE_SOA_LAYOUT(PixelSeedingTrackingHitsLayout,
+		SOA_SCALAR(uint32_t, size),
 		SOA_COLUMN(uint32_t, detid),
 		SOA_EIGEN_COLUMN(Vector3d, localPos),
 		SOA_EIGEN_COLUMN(Vector3d, localPosError),		// xx, xy, yy, see DataFormats/GeometrySurface/interface/LocalError.h

@@ -12,6 +12,7 @@ namespace reco {
 	using Vector3d = Eigen::Matrix<double, 3, 1>;
 
 	GENERATE_SOA_LAYOUT(PixelSeedingRegionsLayout,
+		SOA_SCALAR(uint32_t, size),
 		SOA_COLUMN(float, ptMin),
 		SOA_COLUMN(float, vertexRBound),
 		SOA_COLUMN(float, vertexZBound),
