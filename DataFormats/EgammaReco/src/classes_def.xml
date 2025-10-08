@@ -1,5 +1,12 @@
 <lcgdict>
 
+  <class name="reco::PixelSeedingRegionSoA"/>
+  <class name="reco::PixelSeedingRegionSoA::View"/>
+  <class name="reco::PixelSeedingRegionHostCollection" ClassVersion="1">
+    <version ClassVersion="1" checksum="0"/>
+  </class>
+  <class name="edm::Wrapper<reco::PixelSeedingRegionHostCollection>" splitLevel="0"/>
+
   <class name="edm::RefToBase<reco::CaloCluster>"  rntupleSplit="false"/>
   <class name="edm::reftobase::BaseHolder<reco::CaloCluster>"/>
   <class name="edm::reftobase::IndirectHolder<reco::CaloCluster>" />

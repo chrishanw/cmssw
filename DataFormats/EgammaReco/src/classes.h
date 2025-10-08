@@ -1,3 +1,6 @@
+#include <Eigen/Core>
+#include "DataFormats/EgammaReco/interface/PixelSeedingRegionSoA.h"
+#include "DataFormats/EgammaReco/interface/PixelSeedingRegionHostCollection.h"
 #include "DataFormats/Common/interface/Wrapper.h"
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
 #include "Math/Cartesian3D.h"
