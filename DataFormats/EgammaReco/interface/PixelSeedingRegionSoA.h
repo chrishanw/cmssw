@@ -22,8 +22,6 @@ namespace reco {
 		SOA_SCALAR(float, tanLambdaRangeMax),
         SOA_SCALAR(float, phiMarginLeft),
 		SOA_SCALAR(float, phiMarginRight),
-		// SOA_EIGEN_SCALAR(Vector3d, direction),
-		// SOA_EIGEN_SCALAR(Vector3d, vertexPos),
 		SOA_SCALAR(float, directionX),
 		SOA_SCALAR(float, directionY),
 		SOA_SCALAR(float, directionZ),
