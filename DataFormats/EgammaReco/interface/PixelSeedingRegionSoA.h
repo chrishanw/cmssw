@@ -42,8 +42,7 @@ namespace reco {
 		SOA_EIGEN_COLUMN(Vector3d, hit2LocalPos),
 		SOA_EIGEN_COLUMN(Vector3d, hit2LocalPosError),
 		SOA_EIGEN_COLUMN(Vector3d, hit2GlobalPos),
-		SOA_EIGEN_COLUMN(Matrix4d, hit2GlobalPosError),
-
+		SOA_EIGEN_COLUMN(Matrix4d, hit2GlobalPosError)
 	)
 	using PixelSeedingRegionSoA = PixelSeedingRegionLayout<>;
 }  // namespace reco
