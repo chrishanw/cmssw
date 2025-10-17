@@ -62,6 +62,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     auto seeds = std::make_unique<TrajectorySeedCollection>();
     seeds->reserve(seedingHitSets.size());
 
+    std::vector<PixelSeedingRegionHostCollection> psrhcs;
+    psrhcs.reserve(seedingHitSets.size());
+
     for (const auto& regionSeedingHitSets : seedingHitSets) {
       const TrackingRegion& region = regionSeedingHitSets.region();
       
@@ -149,6 +152,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         i++;
       }
 
+      psrhcs.push_back(psrhc);
     }
 
     seeds->shrink_to_fit();
