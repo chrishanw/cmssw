@@ -121,19 +121,19 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         SeedingHitSet::ConstRecHitPointer tth0 = hits[0];
         SeedingHitSet::ConstRecHitPointer tth1 = hits[1];
 
-        psrhc.view().hit0Detid()[i] = 0;  // TODO
+        psrhc.view().hit0Detid()[i] = tth0->rawId();
         psrhc.view().hit0LocalPos()[i] = tth0->localPosition();
         psrhc.view().hit0LocalPosError()[i] = tth0->localPositionError();
         psrhc.view().hit0GlobalPos()[i] = tth0->globalPosition();
         psrhc.view().hit0GlobalPosError()[i] = tth0->globalPositionError();
-        psrhc.view().hit1Detid()[i] = 0;  // TODO
+        psrhc.view().hit1Detid()[i] = tth1->rawId();
         psrhc.view().hit1LocalPos()[i] = tth1->localPosition();
         psrhc.view().hit1LocalPosError()[i] = tth0->localPositionError();
         psrhc.view().hit1GlobalPos()[i] = tth1->globalPosition();
         psrhc.view().hit1GlobalPosError()[i] = tth1->globalPositionError();
         if (isTriplet) {
           SeedingHitSet::ConstRecHitPointer tth2 = hits[2];
-          psrhc.view().hit2Detid()[i] = 0;  // TODO
+          psrhc.view().hit2Detid()[i] = tth2->rawId();
           psrhc.view().hit2LocalPos()[i] = tth2->localPosition();
           psrhc.view().hit2LocalPosError()[i] = tth2->localPositionError();
           psrhc.view().hit2GlobalPos()[i] = tth2->globalPosition();
