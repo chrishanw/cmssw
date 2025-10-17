@@ -146,9 +146,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           psrhc.view().hit2GlobalPosError()[i] = AlgebraicSymMatrix44();
             // {{0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}};
         }
+        i++;
       }
 
-      i++;
     }
 
     seeds->shrink_to_fit();
