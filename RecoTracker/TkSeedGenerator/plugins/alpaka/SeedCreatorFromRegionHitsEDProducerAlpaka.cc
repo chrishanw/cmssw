@@ -1,6 +1,3 @@
-#ifndef RecoTracker_TkSeedGenerator_interface_alpaka_SeedCreatorFromRegionHitsEDProducerAlpaka_H
-#define RecoTracker_TkSeedGenerator_interface_alpaka_SeedCreatorFromRegionHitsEDProducerAlpaka_H
-
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -160,4 +157,5 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   }
 } // namespace ALPAKA_ACCELERATOR_NAMESPACE
 
-#endif
+#include "HeterogeneousCore/AlpakaCore/interface/alpaka/MakerMacros.h"
+DEFINE_FWK_ALPAKA_MODULE(SeedCreatorFromRegionHitsEDProducerAlpaka);
