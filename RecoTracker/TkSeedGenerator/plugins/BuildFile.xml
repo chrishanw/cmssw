@@ -47,3 +47,11 @@
 <library file="*.cc" name="RecoTrackerTkSeedGeneratorPlugins">
   <flags EDM_PLUGIN="1"/>
 </library>
+<library file="alpaka/*.cc" name="RecoTrackerTkSeedGeneratorPluginsPortable">
+  <use name="alpaka"/>
+  <use name="DataFormats/Portable"/>
+  <use name="HeterogeneousCore/AlpakaCore"/>
+  <use name="HeterogeneousCore/AlpakaInterface"/>
+  <flags ALPAKA_BACKENDS="1"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
