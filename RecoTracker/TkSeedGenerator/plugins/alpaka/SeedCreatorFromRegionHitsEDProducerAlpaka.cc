@@ -1,8 +1,11 @@
-#include "FWCore/Framework/interface/ConsumesCollector.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/EventSetup.h"
-#include "FWCore/Utilities/interface/EDGetToken.h"
+#include <Eigen/Core>
+
+#include "HeterogeneousCore/AlpakaCore/interface/alpaka/EDGetToken.h"
+#include "HeterogeneousCore/AlpakaCore/interface/alpaka/EDPutToken.h"
+#include "HeterogeneousCore/AlpakaCore/interface/alpaka/Event.h"
+#include "HeterogeneousCore/AlpakaCore/interface/alpaka/EventSetup.h"
+#include "HeterogeneousCore/AlpakaCore/interface/alpaka/stream/EDProducer.h"
+
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
@@ -18,27 +21,29 @@
 #include "RecoTracker/TkSeedingLayers/interface/SeedingHitSet.h"
 #include "RecoTracker/TkTrackingRegions/interface/RectangularEtaPhiTrackingRegion.h"
 
+#include "DataFormats/Math/interface/AlgebraicROOTObjects.h"
+
+#include <algorithm>
+
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
-  class SeedCreatorFromRegionHitsEDProducerAlpaka : public global::EDProducer<> {
+  class SeedCreatorFromRegionHitsEDProducerAlpaka : public stream::EDProducer<> {
   public:
     SeedCreatorFromRegionHitsEDProducerAlpaka(const edm::ParameterSet& iConfig);
     ~SeedCreatorFromRegionHitsEDProducerAlpaka() override = default;
 
     static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-    void produce(edm::Event& iEvent, const edm::EventSetup& iSetup) override;
+    void produce(device::Event&, device::EventSetup const&) override;
 
   private:
     edm::EDGetTokenT<RegionsSeedingHitSets> seedingHitSetsToken_;
+    device::EDPutToken<TrajectorySeedCollection> trajectorySeedCollectionToken_;
   };
 
   SeedCreatorFromRegionHitsEDProducerAlpaka::SeedCreatorFromRegionHitsEDProducerAlpaka(
       const edm::ParameterSet& iConfig)
-      : seedingHitSetsToken_(consumes<RegionsSeedingHitSets>(iConfig.getParameter<edm::InputTag>("seedingHitSets")))
-    edm::ConsumesCollector iC = consumesCollector();
-
-    produces<TrajectorySeedCollection>();
+      : seedingHitSetsToken_(consumes<RegionsSeedingHitSets>(iConfig.getParameter<edm::InputTag>("seedingHitSets"))) {
   }
 
   void SeedCreatorFromRegionHitsEDProducerAlpaka::fillDescriptions(
@@ -47,32 +52,30 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
     desc.add<edm::InputTag>("seedingHitSets", edm::InputTag("hitPairEDProducer"));
 
-    auto label = std::string("seedCreatorFromRegion") + T_SeedCreator::fillDescriptionsLabel() + "EDProducer";
-    descriptions.add(label, desc);
+    descriptions.addWithDefaultLabel(desc);
   }
 
-  void SeedCreatorFromRegionHitsEDProducerAlpaka::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-    edm::Handle<RegionsSeedingHitSets> hseedingHitSets;
-    iEvent.getByToken(seedingHitSetsToken_, hseedingHitSets);
+  void SeedCreatorFromRegionHitsEDProducerAlpaka::produce(device::Event& iEvent, const device::EventSetup& iSetup) {
+    const auto hseedingHitSets = iEvent.getHandle(seedingHitSetsToken_);
+    // type of seedingHitSets is RegionsSeedingHitSets
     const auto& seedingHitSets = *hseedingHitSets;
 
     auto seeds = std::make_unique<TrajectorySeedCollection>();
     seeds->reserve(seedingHitSets.size());
 
-    std::vector<PixelSeedingRegionHostCollection> psrhcs;
+    std::vector<reco::PixelSeedingRegionHostCollection*> psrhcs;
     psrhcs.reserve(seedingHitSets.size());
 
+    // type of regionSeedingHitSets is ihd::RegionLayerSets<SeedingHitSet>
     for (const auto& regionSeedingHitSets : seedingHitSets) {
-      const TrackingRegion& region = regionSeedingHitSets.region();
-      
-      const size_t nMultipletsInRegion = regionSeedingHitSets.size();
-      const int multipletSize = regionSeedingHitSets.at(0).size();
+      const size_t nMultipletsInRegion = std::distance(regionSeedingHitSets.begin(), regionSeedingHitSets.end());
+      const int multipletSize = regionSeedingHitSets.begin()->size();
       // Should be dealing with either doublets or triplets at this point
       assert(multipletSize == 2 or multipletSize == 3);
       const bool isTriplet = (multipletSize == 3);
 
       // stack host memory in the queue
-      PixelSeedingRegionHostCollection psrhc(nMultipletsInRegion, event.queue());
+      reco::PixelSeedingRegionHostCollection psrhc(nMultipletsInRegion, iEvent.queue());
       psrhc.view().isTriplet() = isTriplet;
       psrhc.view().size() = nMultipletsInRegion;
 
@@ -92,27 +95,28 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       psrhc.view().vertexPosY() = 0.0;
       psrhc.view().vertexPosZ() = 0.0;
 
+      const TrackingRegion& region = regionSeedingHitSets.region();
 
-      if (region.direction().x() != 0 &&
-          forceKinematicWithRegionDirection_)  // a direction was given, check if it is an etaPhi region
+      if (region.direction().x() != 0 /* &&
+          forceKinematicWithRegionDirection_*/)  // a direction was given, check if it is an etaPhi region
       {
-        const RectangularEtaPhiTrackingRegion etaPhiRegion = dynamic_cast<const RectangularEtaPhiTrackingRegion>(region);
+        const RectangularEtaPhiTrackingRegion* etaPhiRegion = dynamic_cast<const RectangularEtaPhiTrackingRegion*>(&region);
         if (etaPhiRegion) {
           psrhc.view().ptMin() = region.ptMin();
           psrhc.view().vertexRBound() = region.originRBound();  // assume equal cxx cyy
           psrhc.view().vertexZBound() = region.originZBound();
-          psrhc.view().tanLambdaRangeMin() = etaPhiRegion.tanLambdaRange().first;
-          psrhc.view().tanLambdaRangeMax() = etaPhiRegion.tanLambdaRange().second;
-          psrhc.view().phiMarginLeft() = etaPhiRegion.phiMargin().left();
-          psrhc.view().phiMarginRight() = etaPhiRegion.phiMargin().right();
+          psrhc.view().tanLambdaRangeMin() = etaPhiRegion->tanLambdaRange().first;
+          psrhc.view().tanLambdaRangeMax() = etaPhiRegion->tanLambdaRange().second;
+          psrhc.view().phiMarginLeft() = etaPhiRegion->phiMargin().left();
+          psrhc.view().phiMarginRight() = etaPhiRegion->phiMargin().right();
           const GlobalVector& direction = region.direction() / region.direction().mag();
-          psrhc.view().directionX() = direction.X();
-          psrhc.view().directionY() = direction.Y();
-          psrhc.view().directionZ() = direction.Z();
+          psrhc.view().directionX() = direction.x();
+          psrhc.view().directionY() = direction.y();
+          psrhc.view().directionZ() = direction.z();
           const GlobalPoint& vertexPos = region.origin();
-          psrhc.view().vertexPosX() = vertexPos.X();
-          psrhc.view().vertexPosY() = vertexPos.Y();
-          psrhc.view().vertexPosZ() = vertexPos.Z();
+          psrhc.view().vertexPosX() = vertexPos.x();
+          psrhc.view().vertexPosY() = vertexPos.y();
+          psrhc.view().vertexPosZ() = vertexPos.z();
         }
       }
 
@@ -121,39 +125,52 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         SeedingHitSet::ConstRecHitPointer tth0 = hits[0];
         SeedingHitSet::ConstRecHitPointer tth1 = hits[1];
 
-        psrhc.view().hit0Detid()[i] = tth0->rawId();
-        psrhc.view().hit0LocalPos()[i] = tth0->localPosition();
-        psrhc.view().hit0LocalPosError()[i] = tth0->localPositionError();
-        psrhc.view().hit0GlobalPos()[i] = tth0->globalPosition();
-        psrhc.view().hit0GlobalPosError()[i] = tth0->globalPositionError();
-        psrhc.view().hit1Detid()[i] = tth1->rawId();
-        psrhc.view().hit1LocalPos()[i] = tth1->localPosition();
-        psrhc.view().hit1LocalPosError()[i] = tth0->localPositionError();
-        psrhc.view().hit1GlobalPos()[i] = tth1->globalPosition();
-        psrhc.view().hit1GlobalPosError()[i] = tth1->globalPositionError();
+        const auto& locPos0 = tth0->localPosition();
+        const auto& locPosErr0 = tth0->localPositionError();
+        const auto& globPos0 = tth0->globalPosition();
+        const auto& globPosErr0 = tth0->globalPositionError();
+        psrhc.view()[i].hit0Detid() = tth0->rawId();
+        psrhc.view()[i].hit0LocalPos() = Eigen::Vector3d(locPos0.x(), locPos0.y(), locPos0.z());
+        psrhc.view()[i].hit0LocalPosError() = Eigen::Vector3d(locPosErr0.xx(), locPosErr0.xy(), locPosErr0.yy());
+        psrhc.view()[i].hit0GlobalPos() = Eigen::Vector3d(globPos0.x(), globPos0.y(), globPos0.z());
+        // psrhc.view()[i].hit0GlobalPosError() = tth0->globalPositionError();
+
+        const auto& locPos1 = tth1->localPosition();
+        const auto& locPosErr1 = tth1->localPositionError();
+        const auto& globPos1 = tth1->globalPosition();
+        const auto& globPosErr1 = tth1->globalPositionError();
+        psrhc.view()[i].hit1Detid() = tth1->rawId();
+        psrhc.view()[i].hit1LocalPos() = Eigen::Vector3d(locPos1.x(), locPos1.y(), locPos1.z());
+        psrhc.view()[i].hit1LocalPosError() = Eigen::Vector3d(locPosErr1.xx(), locPosErr1.xy(), locPosErr1.yy());
+        psrhc.view()[i].hit1GlobalPos() = Eigen::Vector3d(globPos1.x(), globPos1.y(), globPos1.z());
+        // psrhc.view()[i].hit1GlobalPosError() = tth1->globalPositionError();
+
         if (isTriplet) {
           SeedingHitSet::ConstRecHitPointer tth2 = hits[2];
-          psrhc.view().hit2Detid()[i] = tth2->rawId();
-          psrhc.view().hit2LocalPos()[i] = tth2->localPosition();
-          psrhc.view().hit2LocalPosError()[i] = tth2->localPositionError();
-          psrhc.view().hit2GlobalPos()[i] = tth2->globalPosition();
-          psrhc.view().hit2GlobalPosError()[i] = tth2->globalPositionError();
+          const auto& locPos2 = tth2->localPosition();
+          const auto& locPosErr2 = tth2->localPositionError();
+          const auto& globPos2 = tth2->globalPosition();
+          const auto& globPosErr2 = tth2->globalPositionError();
+          psrhc.view()[i].hit2Detid() = tth2->rawId();
+          psrhc.view()[i].hit2LocalPos() = Eigen::Vector3d(locPos2.x(), locPos2.y(), locPos2.z());
+          psrhc.view()[i].hit2LocalPosError() = Eigen::Vector3d(locPosErr2.xx(), locPosErr2.xy(), locPosErr2.yy());
+          psrhc.view()[i].hit2GlobalPos() = Eigen::Vector3d(globPos2.x(), globPos2.y(), globPos2.z());
+          // psrhc.view()[i].hit2GlobalPosError() = tth2->globalPositionError();
         } else {
-          psrhc.view().hit2Detid()[i] = 0;
-          psrhc.view().hit2LocalPos()[i] = {0.0, 0.0, 0.0};
-          psrhc.view().hit2LocalPosError()[i] = {0.0, 0.0, 0.0};
-          psrhc.view().hit2GlobalPos()[i] = {0.0, 0.0, 0.0};
-          psrhc.view().hit2GlobalPosError()[i] = AlgebraicSymMatrix44();
-            // {{0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}};
+          psrhc.view()[i].hit2Detid() = 0;
+          psrhc.view()[i].hit2LocalPos().setZero();
+          psrhc.view()[i].hit2LocalPosError().setZero();
+          psrhc.view()[i].hit2GlobalPos().setZero();
+          psrhc.view()[i].hit2GlobalPosError().setZero();
         }
         i++;
       }
 
-      psrhcs.push_back(psrhc);
+      psrhcs.push_back(&psrhc);
     }
 
-    seeds->shrink_to_fit();
-    iEvent.put(std::move(seeds));
+    // seeds->shrink_to_fit();
+    // iEvent.put(std::move(seeds));
   }
 } // namespace ALPAKA_ACCELERATOR_NAMESPACE
 
