@@ -64,8 +64,6 @@ public:
   void makeSeed(reco::ElectronSeedCollection& seedCollection, const reco::ElectronSeed& seed);
 
 private:
-  ElectronSeedFitter(const edm::ParameterSet&, edm::ConsumesCollector&&);
-
   void initialKinematic(GlobalTrajectoryParameters& kine, const reco::ElectronSeed& seed) const;
 
   CurvilinearTrajectoryError initialError(float sin2Theta) const dso_hidden;
@@ -99,12 +97,10 @@ protected:
   const edm::ESGetToken<Propagator, TrackingComponentsRecord> propagatorESToken_;
   const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldESToken_;
   const edm::ESGetToken<TransientTrackingRecHitBuilder, TransientRecHitRecord> transientTrackingRecHitBuilderESToken_;
+  const edm::EDPutTokenT<reco::ElectronSeedCollection> putToken_;
 };
 
 ElectronSeedFitter::ElectronSeedFitter(const edm::ParameterSet& cfg)
-    : ElectronSeedFitter::ElectronSeedFitter(cfg, consumesCollector()) {}
-
-ElectronSeedFitter::ElectronSeedFitter(const edm::ParameterSet& cfg, edm::ConsumesCollector&& iC)
     : eleSeedCollectionToken_(
           consumes<reco::ElectronSeedCollection>(cfg.getParameter<edm::InputTag>("eleSeedCollection"))),
       propagatorLabel_(cfg.getParameter<std::string>("propagator")),
@@ -113,12 +109,11 @@ ElectronSeedFitter::ElectronSeedFitter(const edm::ParameterSet& cfg, edm::Consum
       minOneOverPtError_(cfg.getParameter<double>("MinOneOverPtError")),
       ttrhBuilder_(cfg.getParameter<std::string>("TTRHBuilder")),
       mfName_(cfg.getParameter<std::string>("magneticField")),
-      trackerGeometryESToken_(iC.esConsumes()),
-      propagatorESToken_(iC.esConsumes(edm::ESInputTag("", propagatorLabel_))),
-      magneticFieldESToken_(iC.esConsumes(edm::ESInputTag("", mfName_))),
-      transientTrackingRecHitBuilderESToken_(iC.esConsumes(edm::ESInputTag("", ttrhBuilder_))) {
-  produces<reco::ElectronSeedCollection>();
-}
+      trackerGeometryESToken_(esConsumes()),
+      propagatorESToken_(esConsumes(edm::ESInputTag("", propagatorLabel_))),
+      magneticFieldESToken_(esConsumes(edm::ESInputTag("", mfName_))),
+      transientTrackingRecHitBuilderESToken_(esConsumes(edm::ESInputTag("", ttrhBuilder_))),
+      putToken_{produces()} {}
 
 void ElectronSeedFitter::fillDescription(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
@@ -146,7 +141,8 @@ void ElectronSeedFitter::produce(edm::Event& iEvent, const edm::EventSetup& iSet
     makeSeed(*electronSeedsOut, seed);
   }
 
-  iEvent.put(std::move(electronSeedsOut));
+  electronSeedsOut->shrink_to_fit();
+  iEvent.put(putToken_, std::move(electronSeedsOut));
 }
 
 void ElectronSeedFitter::init(const edm::EventSetup& es) {

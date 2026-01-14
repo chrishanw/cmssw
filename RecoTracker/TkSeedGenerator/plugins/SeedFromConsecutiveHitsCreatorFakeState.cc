@@ -68,9 +68,7 @@ void SeedFromConsecutiveHitsCreatorFakeState::makeSeed(TrajectorySeedCollection 
   }
 
   // Since there is no valid state with valid trajectory parameters, the trajectory state creation is faked
-  float localErrors[15] = {0.2};
-  PTrajectoryStateOnDet const fakePTraj = PTrajectoryStateOnDet(
-      LocalTrajectoryParameters(1., 1., 1., 1., 1., 1.), 10., localErrors, hit->geographicalId().rawId(), 1);
+  PTrajectoryStateOnDet const fakePTraj = PTrajectoryStateOnDet();
 
   seedCollection.emplace_back(fakePTraj, std::move(seedHits), alongMomentum, seedCollection.size());
 }
