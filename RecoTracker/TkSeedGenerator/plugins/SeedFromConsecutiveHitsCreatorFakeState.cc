@@ -72,7 +72,7 @@ void SeedFromConsecutiveHitsCreatorFakeState::makeSeed(TrajectorySeedCollection 
   PTrajectoryStateOnDet const fakePTraj = PTrajectoryStateOnDet(
       LocalTrajectoryParameters(1., 1., 1., 1., 1., 1.), 10., localErrors, hit->geographicalId().rawId(), 1);
 
-  seedCollection.emplace_back(fakePTraj, std::move(seedHits), alongMomentum);
+  seedCollection.emplace_back(fakePTraj, std::move(seedHits), alongMomentum, seedCollection.size());
 }
 
 #include "RecoTracker/TkSeedGenerator/interface/SeedCreatorFromRegionHitsEDProducerT.h"
