@@ -195,7 +195,7 @@ void SeedFromConsecutiveHitsCreator::buildSeed(TrajectorySeedCollection& seedCol
 
   PTrajectoryStateOnDet const& PTraj =
       trajectoryStateTransform::persistentState(updatedState, hit->geographicalId().rawId());
-  seedCollection.emplace_back(PTraj, std::move(seedHits), alongMomentum);
+  seedCollection.emplace_back(PTraj, std::move(seedHits), alongMomentum, seedCollection.size());
 }
 
 SeedingHitSet::RecHitPointer SeedFromConsecutiveHitsCreator::refitHit(SeedingHitSet::ConstRecHitPointer hit,
