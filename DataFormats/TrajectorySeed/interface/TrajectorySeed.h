@@ -23,17 +23,16 @@ public:
   TrajectorySeed() {}
   virtual ~TrajectorySeed() {}
 
-  TrajectorySeed(PTrajectoryStateOnDet const& ptsos, RecHitContainer const& rh, PropagationDirection dir, int id = -1)
-      : hits_(rh), tsos_(ptsos), dir_(dir), uniqueID_(id) {}
+  TrajectorySeed(PTrajectoryStateOnDet const& ptsos, RecHitContainer const& rh, PropagationDirection dir)
+      : hits_(rh), tsos_(ptsos), dir_(dir) {}
 
-  TrajectorySeed(PTrajectoryStateOnDet const& ptsos, RecHitContainer&& rh, PropagationDirection dir, int id = -1) noexcept
-      : hits_(std::move(rh)), tsos_(ptsos), dir_(dir), uniqueID_(id) {}
+  TrajectorySeed(PTrajectoryStateOnDet const& ptsos, RecHitContainer&& rh, PropagationDirection dir) noexcept
+      : hits_(std::move(rh)), tsos_(ptsos), dir_(dir) {}
 
-  void swap(PTrajectoryStateOnDet& ptsos, RecHitContainer& rh, PropagationDirection& dir /*, int id */) noexcept {
+  void swap(PTrajectoryStateOnDet& ptsos, RecHitContainer& rh, PropagationDirection& dir) noexcept {
     hits_.swap(rh);
     std::swap(tsos_, ptsos);
     std::swap(dir_, dir);
-    // std::swap(uniqueID_, id);
   }
 
   void swap(TrajectorySeed& rh) noexcept {
@@ -57,14 +56,10 @@ public:
 
   virtual TrajectorySeed* clone() const { return new TrajectorySeed(*this); }
 
-  int uniqueID() const { return uniqueID_; }
-  void setUniqueID(int id) { uniqueID_ = id; }
-
 private:
   RecHitContainer hits_;
   PTrajectoryStateOnDet tsos_;
   PropagationDirection dir_ = invalidDirection;
-  int uniqueID_ = -1;
 };
 
 inline void swap(TrajectorySeed& rh, TrajectorySeed& lh) noexcept { rh.swap(lh); }
