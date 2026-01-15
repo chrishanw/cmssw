@@ -78,6 +78,7 @@ public:
     const TrajectorySeed& seed;
     const std::vector<MatchInfo> matchInfos;
     const int nrValidLayers;
+    const int seedNumber;
   };
 
   class MatchingCuts {

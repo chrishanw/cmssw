@@ -136,6 +136,9 @@ namespace reco {
                                              const char hitMask,
                                              TrajectorySeed::RecHitRange const& recHits);
 
+  int uniqueID() const { return uniqueID_; }
+  void setUniqueID(int id) { uniqueID_ = id; }
+
   private:
     static float bestVal(float val1, float val2) { return std::abs(val1) < std::abs(val2) ? val1 : val2; }
     template <typename T>
@@ -152,6 +155,7 @@ namespace reco {
 
     bool isEcalDriven_;
     bool isTrackerDriven_;
+    int uniqueID_ = -1;
   };
 }  // namespace reco
 

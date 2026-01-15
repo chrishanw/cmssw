@@ -128,6 +128,7 @@ void ElectronNHitSeedProducer::produce(edm::StreamID, edm::Event& iEvent, const 
         reco::ElectronSeed::CaloClusterRef caloClusRef(superClusRef);
         eleSeed.setCaloCluster(caloClusRef);
         eleSeed.setNrLayersAlongTraj(matchedSeed.nrValidLayers);
+        eleSeed.setUniqueID(matchedSeed.seedNumber);
         for (auto const& matchInfo : matchedSeed.matchInfos) {
           eleSeed.addHitInfo(makeSeedPixelVar(matchInfo, trackerTopology));
         }

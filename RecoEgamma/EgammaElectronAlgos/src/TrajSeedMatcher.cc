@@ -162,6 +162,7 @@ std::vector<TrajSeedMatcher::SeedWithInfo> TrajSeedMatcher::operator()(const Glo
   TrajectoryStateOnSurface scTrajStateOnSurfNeg = makeTrajStateOnSurface(candPos, energy, -1);
   TrajectoryStateOnSurface scTrajStateOnSurfPos = makeTrajStateOnSurface(candPos, energy, 1);
 
+  int seedNumber = 0;
   for (const auto& seed : seeds_) {
     std::vector<SCHitMatch> matchedHitsNeg = processSeed(seed, candPos, energy, scTrajStateOnSurfNeg);
     std::vector<SCHitMatch> matchedHitsPos = processSeed(seed, candPos, energy, scTrajStateOnSurfPos);
@@ -186,8 +187,9 @@ std::vector<TrajSeedMatcher::SeedWithInfo> TrajSeedMatcher::operator()(const Glo
       matchCountPasses = matchedHitsNeg.size() >= nrHitsRequired || matchedHitsPos.size() >= nrHitsRequired;
     }
     if (matchCountPasses) {
-      matchedSeeds.push_back({seed, makeMatchInfoVector(matchedHitsPos, matchedHitsNeg), nrValidLayers});
+      matchedSeeds.push_back({seed, makeMatchInfoVector(matchedHitsPos, matchedHitsNeg), nrValidLayers, seedNumber});
     }
+    seedNumber++;
   }
   return matchedSeeds;
 }
