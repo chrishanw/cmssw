@@ -155,6 +155,7 @@ namespace reco {
 
     bool isEcalDriven_;
     bool isTrackerDriven_;
+
     int uniqueID_ = -1;
   };
 }  // namespace reco

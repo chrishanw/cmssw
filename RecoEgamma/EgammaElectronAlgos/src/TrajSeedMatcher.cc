@@ -113,7 +113,9 @@ TrajSeedMatcher::TrajSeedMatcher(TrajectorySeedCollection const& seeds,
       navSchool_{iSetup.getData(cfg_.navSchoolToken)},
       detLayerGeom_{iSetup.getData(cfg_.detLayerGeomToken)},
       forwardPropagator_(alongMomentum, kElectronMass_, &magField_),
-      backwardPropagator_(oppositeToMomentum, kElectronMass_, &magField_) {}
+      backwardPropagator_(oppositeToMomentum, kElectronMass_, &magField_) {
+        seedCounter_ = 0;
+      }
 
 edm::ParameterSetDescription TrajSeedMatcher::makePSetDescription() {
   edm::ParameterSetDescription desc;
@@ -162,8 +164,8 @@ std::vector<TrajSeedMatcher::SeedWithInfo> TrajSeedMatcher::operator()(const Glo
   TrajectoryStateOnSurface scTrajStateOnSurfNeg = makeTrajStateOnSurface(candPos, energy, -1);
   TrajectoryStateOnSurface scTrajStateOnSurfPos = makeTrajStateOnSurface(candPos, energy, 1);
 
-  int seedNumber = 0;
   for (const auto& seed : seeds_) {
+    seedCounter_++;
     std::vector<SCHitMatch> matchedHitsNeg = processSeed(seed, candPos, energy, scTrajStateOnSurfNeg);
     std::vector<SCHitMatch> matchedHitsPos = processSeed(seed, candPos, energy, scTrajStateOnSurfPos);
 
@@ -187,9 +189,8 @@ std::vector<TrajSeedMatcher::SeedWithInfo> TrajSeedMatcher::operator()(const Glo
       matchCountPasses = matchedHitsNeg.size() >= nrHitsRequired || matchedHitsPos.size() >= nrHitsRequired;
     }
     if (matchCountPasses) {
-      matchedSeeds.push_back({seed, makeMatchInfoVector(matchedHitsPos, matchedHitsNeg), nrValidLayers, seedNumber});
+      matchedSeeds.push_back({seed, makeMatchInfoVector(matchedHitsPos, matchedHitsNeg), nrValidLayers, seedCounter_});
     }
-    seedNumber++;
   }
   return matchedSeeds;
 }

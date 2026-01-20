@@ -78,7 +78,7 @@ public:
     const TrajectorySeed& seed;
     const std::vector<MatchInfo> matchInfos;
     const int nrValidLayers;
-    const int seedNumber;
+    const int id;
   };
 
   class MatchingCuts {
@@ -220,6 +220,8 @@ private:
 
   IntGlobalPointPairUnorderedMap<TrajectoryStateOnSurface> trajStateFromPointPosChargeCache_;
   IntGlobalPointPairUnorderedMap<TrajectoryStateOnSurface> trajStateFromPointNegChargeCache_;
+
+  int seedCounter_ = 0;
 };
 
 #endif
