@@ -187,6 +187,23 @@ void SeedFromConsecutiveHitsCreator::buildSeed(TrajectorySeedCollection& seedCol
     if (!updatedState.isValid())
       return;
 
+    const auto& hitPos      = hit->globalPosition();
+    const auto& newHitPos   = newtth->globalPosition();
+    const auto  diff        = newHitPos - hitPos;
+    const auto  deltaMag    = newHitPos.mag() - hitPos.mag();
+    const auto  deltaPerp   = newHitPos.perp() - hitPos.perp();
+    const auto  deltaPhi    = newHitPos.barePhi() - hitPos.barePhi();
+    const auto  deltaTheta  = newHitPos.bareTheta() - hitPos.bareTheta();
+    const auto  deltaEta    = newHitPos.eta() - hitPos.eta();
+    if (debug_) {
+      std::cout << "SeedFromConsecutiveHitsCreator::buildSeed; "
+                << hitPos.x()     << "; " << hitPos.y()     << "; " << hitPos.z()     << "; "
+                << newHitPos.x()  << "; " << newHitPos.y()  << "; " << newHitPos.z()  << "; "
+                << diff.x()       << "; " << diff.y()       << "; " << diff.z()       << "; "
+                << deltaMag       << "; " << deltaPerp      << "; " << deltaPhi       << "; " << deltaTheta << "; " << deltaEta
+                << std::endl;
+    }
+
     seedHits.push_back(newtth.release());
   }
 

@@ -21,5 +21,11 @@ public:
   // make job
   // fill seedCollection with the "TrajectorySeed"
   virtual void makeSeed(TrajectorySeedCollection& seedCollection, const SeedingHitSet& hits) = 0;
+
+  virtual void setDebug(const bool debug = false) { debug_ = debug; }
+protected:
+
+  bool debug_ = false;
+
 };
 #endif

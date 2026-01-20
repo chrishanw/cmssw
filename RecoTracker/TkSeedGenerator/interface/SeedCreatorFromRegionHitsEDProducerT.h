@@ -31,6 +31,8 @@ private:
   edm::EDGetTokenT<RegionsSeedingHitSets> seedingHitSetsToken_;
   T_SeedCreator seedCreator_;
   std::unique_ptr<SeedComparitor> comparitor_;
+
+  bool debug_ = false;
 };
 
 template <typename T_SeedCreator>
@@ -44,6 +46,9 @@ SeedCreatorFromRegionHitsEDProducerT<T_SeedCreator>::SeedCreatorFromRegionHitsED
   if (comparitorName != "none") {
     comparitor_ = SeedComparitorFactory::get()->create(comparitorName, comparitorPSet, iC);
   }
+  debug_ = iConfig.getParameter<bool>("debug");
+
+  seedCreator_.setDebug(debug_);
 
   produces<TrajectorySeedCollection>();
 }
@@ -54,6 +59,7 @@ void SeedCreatorFromRegionHitsEDProducerT<T_SeedCreator>::fillDescriptions(
   edm::ParameterSetDescription desc;
 
   desc.add<edm::InputTag>("seedingHitSets", edm::InputTag("hitPairEDProducer"));
+  desc.add<bool>("debug", false);
   T_SeedCreator::fillDescriptions(desc);
 
   edm::ParameterSetDescription descComparitor;
