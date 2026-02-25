@@ -252,6 +252,7 @@ void ElectronSeedFitter::buildSeed(reco::ElectronSeedCollection& seedCollection,
   const reco::ElectronSeed::CaloClusterRef& caloClusRef(seed.caloCluster());
   eleSeed.setCaloCluster(caloClusRef);
   eleSeed.setNrLayersAlongTraj(seed.nrLayersAlongTraj());
+  eleSeed.setUniqueID(seed.uniqueID());
   for (auto const& hitInfo : seed.hitInfo()) {
     eleSeed.addHitInfo(hitInfo);
   }
