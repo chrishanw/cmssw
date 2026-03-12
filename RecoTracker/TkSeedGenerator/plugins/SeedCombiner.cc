@@ -41,6 +41,7 @@ SeedCombiner::SeedCombiner(const edm::ParameterSet& cfg) {
     if (!clusterRemovalInfos_.empty() && clusterRemovalInfos_.size() == inputCollections_.size())
       reKeing_ = true;
   }
+  debug_ = cfg.getParameter<bool>("debug");
 }
 
 void SeedCombiner::produce(edm::Event& ev, const edm::EventSetup& es) {
@@ -48,9 +49,12 @@ void SeedCombiner::produce(edm::Event& ev, const edm::EventSetup& es) {
   size_t ninputs = inputCollections_.size();
   size_t nseeds = 0;
   std::vector<Handle<TrajectorySeedCollection> > seedCollections(ninputs);
+  size_t first = 0, second = 0;
   for (size_t i = 0; i < ninputs; ++i) {
     ev.getByToken(inputCollections_[i], seedCollections[i]);
     nseeds += seedCollections[i]->size();
+    if (i == 1) first = seedCollections[i]->size();
+    if (i == 2) second = seedCollections[i]->size();
   }
 
   // Prepare output collections, with the correct capacity
@@ -80,6 +84,11 @@ void SeedCombiner::produce(edm::Event& ev, const edm::EventSetup& es) {
     }
   }
 
+  if (debug_) {
+    std::cout << "SeedCombiner:,"
+              << ev.id().run() << "," << ev.id().event() << "," << ev.id().luminosityBlock() << ","
+              << result->size() << "," << first << "," << second << std::endl;
+  }
   // Save result into the event
   ev.put(std::move(result));
 }
@@ -87,6 +96,7 @@ void SeedCombiner::produce(edm::Event& ev, const edm::EventSetup& es) {
 void SeedCombiner::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<std::vector<edm::InputTag> >("seedCollections", {});
+  desc.add<bool>("debug", false);
   desc.addOptional<std::vector<edm::InputTag> >("clusterRemovalInfos", {});
   descriptions.addWithDefaultLabel(desc);
 }

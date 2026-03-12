@@ -96,8 +96,12 @@ void SeedCreatorFromRegionHitsEDProducerT<T_SeedCreator>::produce(edm::Event& iE
       }
     }
   }
-
   seeds->shrink_to_fit();
+  if (debug_) {
+    std::cout << "SeedCreatorFromRegionHitsEDProducerT:,"
+              << iEvent.id().run() << "," << iEvent.id().event() << "," << iEvent.id().luminosityBlock()
+              << seeds->size() << "," << seeds->front().nHits() << std::endl;
+  }
   iEvent.put(std::move(seeds));
 }
 

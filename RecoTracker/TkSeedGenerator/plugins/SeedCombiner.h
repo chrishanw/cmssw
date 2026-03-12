@@ -32,6 +32,8 @@ private:
   bool reKeing_;
   std::vector<edm::InputTag> clusterRemovalInfos_;
   std::vector<edm::EDGetTokenT<reco::ClusterRemovalInfo>> clusterRemovalTokens_;
+
+  bool debug_ = false;
 };
 
 #endif
